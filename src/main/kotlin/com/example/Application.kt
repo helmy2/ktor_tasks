@@ -4,14 +4,15 @@ import com.example.authentication.JwtService
 import com.example.authentication.hash
 import com.example.data.table.UserTable
 import com.example.repository.DatabaseFactory
-import com.example.repository.Repository
+import com.example.repository.UserRepository
+import com.example.repository.TaskRepository
+import com.example.routes.taskRoutes
 import com.example.routes.userRoutes
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
 import io.ktor.features.*
 import io.ktor.gson.*
-import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -21,7 +22,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 fun main() {
     DatabaseFactory.init()
-    val db = Repository()
+    val db = UserRepository()
+    val taskRepository = TaskRepository()
     val jwtService = JwtService()
     val hashFunction = { s: String -> hash(s) }
 
@@ -58,6 +60,7 @@ fun main() {
 
         routing {
             userRoutes(db,jwtService,hashFunction)
+            taskRoutes(taskRepository)
         }
     }.start(wait = true)
 }

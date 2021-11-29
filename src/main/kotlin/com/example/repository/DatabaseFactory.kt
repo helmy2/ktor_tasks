@@ -1,5 +1,6 @@
 package com.example.repository
 
+import com.example.data.table.TaskTable
 import com.example.data.table.UserTable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,7 +18,7 @@ object DatabaseFactory {
         )
 
         transaction {
-            SchemaUtils.create(UserTable,)
+            SchemaUtils.create(UserTable,TaskTable)
         }
     }
 

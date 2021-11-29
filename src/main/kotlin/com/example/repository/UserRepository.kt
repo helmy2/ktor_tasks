@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 
-class Repository {
+class UserRepository {
 
     suspend fun addUser(user: User){
         DatabaseFactory.dbQuery {

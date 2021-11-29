@@ -4,7 +4,7 @@ import com.example.authentication.JwtService
 import com.example.data.model.LoginRequest
 import com.example.data.model.RegisterRequest
 import com.example.data.model.User
-import com.example.repository.Repository
+import com.example.repository.UserRepository
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -12,7 +12,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 
 fun Route.userRoutes(
-    db: Repository,
+    repository: UserRepository,
     jwtService: JwtService,
     hashFunction: (String) -> String
 ) {
@@ -27,10 +27,10 @@ fun Route.userRoutes(
 
         try {
             val user = User(registerRequest.email, hashFunction(registerRequest.password), registerRequest.name)
-            if (db.findUserByEmail(registerRequest.email) != null)
+            if (repository.findUserByEmail(registerRequest.email) != null)
                 call.respond(HttpStatusCode.Conflict,  "Email is already exist")
             else{
-                db.addUser(user)
+                repository.addUser(user)
                 call.respond(HttpStatusCode.OK, jwtService.generateToken(user))
             }
         } catch (e: Exception) {
@@ -47,7 +47,7 @@ fun Route.userRoutes(
         }
 
         try {
-            val user = db.findUserByEmail(loginRequest.email)
+            val user = repository.findUserByEmail(loginRequest.email)
 
             if (user == null) {
                 call.respond(HttpStatusCode.BadRequest, "Wrong Email Id")
