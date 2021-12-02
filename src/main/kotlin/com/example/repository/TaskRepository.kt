@@ -5,46 +5,39 @@ import com.example.data.table.TaskTable
 import com.example.data.table.TaskTable.date
 import com.example.data.table.TaskTable.description
 import com.example.data.table.TaskTable.id
+import com.example.data.table.TaskTable.listId
 import com.example.data.table.TaskTable.title
 import org.jetbrains.exposed.sql.*
 
 class TaskRepository {
 
-    suspend fun addTask(note: Task, email: String) {
+    suspend fun addTask(task: Task, email: String) {
         DatabaseFactory.dbQuery {
             TaskTable.insert {
-                it[id] = note.id
+                it[id] = task.id
+                it[listId] = task.listId
                 it[userEmail] = email
-                it[title] = note.title
-                it[description] = note.description
-                it[date] = note.date
+                it[title] = task.title
+                it[description] = task.description
+                it[date] = task.date
             }
-
         }
-
-    }
-
-    suspend fun getAllTask(email: String): List<Task> = DatabaseFactory.dbQuery {
-
-        TaskTable.select {
-            TaskTable.userEmail.eq(email)
-        }.mapNotNull { rowToTask(it) }
-
     }
 
 
-    suspend fun updateTask(note: Task, email: String) {
+    suspend fun updateTask(task: Task, email: String) {
 
         DatabaseFactory.dbQuery {
 
             TaskTable.update(
                 where = {
-                    TaskTable.userEmail.eq(email) and TaskTable.id.eq(note.id)
+                    TaskTable.userEmail.eq(email) and TaskTable.id.eq(task.id)
                 }
             ) {
-                it[title] = note.title
-                it[description] = note.description
-                it[date] = note.date
+                it[listId] = task.listId
+                it[title] = task.title
+                it[description] = task.description
+                it[date] = task.date
             }
 
         }
@@ -58,18 +51,5 @@ class TaskRepository {
     }
 
 
-    private fun rowToTask(row: ResultRow?): Task? {
 
-        if (row == null) {
-            return null
-        }
-
-        return Task(
-            id = row[id],
-            title = row[title],
-            description = row[description],
-            date = row[date]
-        )
-
-    }
 }

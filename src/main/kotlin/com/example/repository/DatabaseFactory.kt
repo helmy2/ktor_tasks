@@ -1,11 +1,11 @@
 package com.example.repository
 
+import com.example.data.table.TaskListTable
 import com.example.data.table.TaskTable
 import com.example.data.table.UserTable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.DatabaseConfig
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -18,7 +18,9 @@ object DatabaseFactory {
         )
 
         transaction {
-            SchemaUtils.create(UserTable,TaskTable)
+            SchemaUtils.create(UserTable)
+            SchemaUtils.create(TaskListTable)
+            SchemaUtils.create(TaskTable)
         }
     }
 

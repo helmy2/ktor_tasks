@@ -4,8 +4,10 @@ import com.example.authentication.JwtService
 import com.example.authentication.hash
 import com.example.data.table.UserTable
 import com.example.repository.DatabaseFactory
+import com.example.repository.ListRepository
 import com.example.repository.UserRepository
 import com.example.repository.TaskRepository
+import com.example.routes.listRoutes
 import com.example.routes.taskRoutes
 import com.example.routes.userRoutes
 import io.ktor.application.*
@@ -13,6 +15,7 @@ import io.ktor.auth.*
 import io.ktor.auth.jwt.*
 import io.ktor.features.*
 import io.ktor.gson.*
+import io.ktor.http.content.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -22,8 +25,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 fun main() {
     DatabaseFactory.init()
-    val db = UserRepository()
+    val userRepository = UserRepository()
     val taskRepository = TaskRepository()
+    val listRepository = ListRepository()
     val jwtService = JwtService()
     val hashFunction = { s: String -> hash(s) }
 
@@ -47,7 +51,7 @@ fun main() {
                 validate {
                     val payload = it.payload
                     val email = payload.getClaim("email").asString()
-                    val user = db.findUserByEmail(email)
+                    val user = userRepository.findUserByEmail(email)
                     user
                 }
             }
@@ -59,9 +63,12 @@ fun main() {
         }
 
         routing {
-            userRoutes(db,jwtService,hashFunction)
+            userRoutes(userRepository, jwtService, hashFunction)
             taskRoutes(taskRepository)
+            listRoutes(listRepository)
+            static { resources("static") }
         }
+
     }.start(wait = true)
 }
 

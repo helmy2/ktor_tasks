@@ -1,39 +1,51 @@
 package com.example.repository
 
 import com.example.data.model.User
+import com.example.data.table.TaskTable
 import com.example.data.table.UserTable
-import org.jetbrains.exposed.sql.ResultRow
+import com.example.data.table.UserTable.email
+import com.example.data.table.UserTable.hashPassword
+import com.example.data.table.UserTable.name
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
 
 class UserRepository {
 
-    suspend fun addUser(user: User){
+    suspend fun addUser(user: User) {
         DatabaseFactory.dbQuery {
-            UserTable.insert { ut ->
-                ut[email] = user.email
-                ut[hashPassword] = user.hashPassword
-                ut[name] = user.userName
+            UserTable.insert {
+                it[email] = user.email
+                it[hashPassword] = user.hashPassword
+                it[name] = user.userName
             }
         }
     }
 
-    suspend fun findUserByEmail(email:String) = DatabaseFactory.dbQuery {
+    suspend fun updateProfileImage(url: String,email: String) {
+        DatabaseFactory.dbQuery {
+            UserTable.update(where = {
+                UserTable.email.eq(email)
+            }) {
+                it[profileImageUrl] = url
+            }
+        }
+    }
+
+    suspend fun findUserByEmail(email: String) = DatabaseFactory.dbQuery {
         UserTable.select { UserTable.email.eq(email) }
             .map { rowToUser(it) }
             .singleOrNull()
     }
 
-    private fun rowToUser(row: ResultRow?): User?{
-        if(row == null){
+    private fun rowToUser(row: ResultRow?): User? {
+        if (row == null) {
             return null
         }
 
         return User(
-            email =  row[UserTable.email],
-            hashPassword = row[UserTable.hashPassword],
-            userName = row[UserTable.name]
+            email = row[email],
+            hashPassword = row[hashPassword],
+            userName = row[name]
         )
     }
 }

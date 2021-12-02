@@ -6,10 +6,14 @@ import com.example.data.model.RegisterRequest
 import com.example.data.model.User
 import com.example.repository.UserRepository
 import io.ktor.application.*
+import io.ktor.auth.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import java.awt.Image
+import java.io.File
 
 fun Route.userRoutes(
     repository: UserRepository,
@@ -28,8 +32,8 @@ fun Route.userRoutes(
         try {
             val user = User(registerRequest.email, hashFunction(registerRequest.password), registerRequest.name)
             if (repository.findUserByEmail(registerRequest.email) != null)
-                call.respond(HttpStatusCode.Conflict,  "Email is already exist")
-            else{
+                call.respond(HttpStatusCode.Conflict, "Email is already exist")
+            else {
                 repository.addUser(user)
                 call.respond(HttpStatusCode.OK, jwtService.generateToken(user))
             }
@@ -64,6 +68,20 @@ fun Route.userRoutes(
         }
     }
 
+    authenticate("jwt") {
+        post("/v1/users/image") {
+            val multipartData = call.receiveMultipart()
+            multipartData.forEachPart { part ->
+                if (part is PartData.FileItem && part.contentType!!.match(ContentType.Image.Any)) {
+                    val email = call.principal<User>()!!.email
+                    val fileName = "$email.${part.contentType!!.contentSubtype}"
+                    val fileBytes = part.streamProvider().readBytes()
+                    File("src/main/resources/static/$fileName").writeBytes(fileBytes)
+                    repository.updateProfileImage(fileName,email)
+                }
+            }
+        }
+    }
 }
 
 

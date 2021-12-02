@@ -1,9 +1,9 @@
 package com.example.data.model
 
-data class Task(
-    val id: String,
-    val listId: Int,
+data class TaskList(
+    val id: Int?,
     val title: String,
     val description: String,
+    val color: String,
     val date: Long
 )
