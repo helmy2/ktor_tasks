@@ -1,7 +1,7 @@
 package com.example.data.model
 
 data class Task(
-    val id: String,
+    val id: Int,
     val listId: Int,
     val title: String,
     val description: String,

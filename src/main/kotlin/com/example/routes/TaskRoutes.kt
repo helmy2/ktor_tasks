@@ -61,7 +61,7 @@ fun Route.taskRoutes(
         delete("/v1/tasks/delete") {
 
             val taskId = try {
-                call.request.queryParameters["id"]!!
+                call.request.queryParameters["id"]!!.toInt()
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, "QueryParameter:id is not present")
                 return@delete

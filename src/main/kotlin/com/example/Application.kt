@@ -37,12 +37,6 @@ fun main() {
 
     embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
 
-        install(Sessions) {
-            cookie<MySession>("MY_SESSION") {
-                cookie.extensions["SameSite"] = "lax"
-            }
-        }
-
         install(Authentication) {
 
             jwt("jwt") {
@@ -72,4 +66,3 @@ fun main() {
     }.start(wait = true)
 }
 
-data class MySession(val count: Int = 0)
