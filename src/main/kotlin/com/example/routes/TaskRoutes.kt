@@ -1,5 +1,6 @@
 package com.example.routes
 
+import com.example.data.model.Response
 import com.example.data.model.TaskList
 import com.example.data.model.Task
 import com.example.data.model.User
@@ -22,7 +23,7 @@ fun Route.taskRoutes(
             val task = try {
                 call.receive<Task>()
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "Missing Fields")
+                call.respond(HttpStatusCode.BadRequest, Response(false, "Missing Fields"))
                 return@post
             }
 
@@ -31,7 +32,7 @@ fun Route.taskRoutes(
                 repository.addTask(task, email)
                 call.respond(HttpStatusCode.OK, "Task Added Successfully!")
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, e.message ?: "Some Problem Occurred!")
+                call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
             }
 
         }
@@ -41,7 +42,7 @@ fun Route.taskRoutes(
             val task = try {
                 call.receive<Task>()
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "Missing Fields")
+                call.respond(HttpStatusCode.BadRequest, Response(false, "Missing Fields"))
                 return@post
             }
 
@@ -49,10 +50,10 @@ fun Route.taskRoutes(
 
                 val email = call.principal<User>()!!.email
                 repository.updateTask(task, email)
-                call.respond(HttpStatusCode.OK, "Task Updated Successfully!")
+                call.respond(HttpStatusCode.OK, Response(true, "Task Updated Successfully!"))
 
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, e.message ?: "Some Problem Occurred!")
+                call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
             }
 
         }
@@ -63,16 +64,16 @@ fun Route.taskRoutes(
             val taskId = try {
                 call.request.queryParameters["id"]!!.toInt()
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "QueryParameter:id is not present")
+                call.respond(HttpStatusCode.BadRequest, Response(false, "QueryParameter:id is not present"))
                 return@delete
             }
             try {
                 val email = call.principal<User>()!!.email
                 repository.deleteTask(taskId, email)
-                call.respond(HttpStatusCode.OK, "Task Deleted Successfully!")
+                call.respond(HttpStatusCode.OK, Response(true, "Task Deleted Successfully!"))
 
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, e.message ?: "Some problem Occurred!")
+                call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some problem Occurred!"))
             }
 
         }

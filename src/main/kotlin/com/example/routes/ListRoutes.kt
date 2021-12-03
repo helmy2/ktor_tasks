@@ -1,5 +1,6 @@
 package com.example.routes
 
+import com.example.data.model.Response
 import com.example.data.model.Task
 import com.example.data.model.TaskList
 import com.example.data.model.User
@@ -33,13 +34,13 @@ fun Route.listRoutes(
             val listId = try {
                 call.request.queryParameters["id"]!!.toInt()
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "QueryParameter:id is not present")
+                call.respond(HttpStatusCode.BadRequest, Response(false, "QueryParameter:id is not present"))
                 return@get
             }
 
             try {
                 val email = call.principal<User>()!!.email
-                val list = repository.getListTasks(listId,email)
+                val list = repository.getListTasks(listId, email)
                 call.respond(HttpStatusCode.OK, list)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.Conflict, emptyList<Task>())
@@ -52,7 +53,7 @@ fun Route.listRoutes(
             val list = try {
                 call.receive<TaskList>()
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "Missing Fields")
+                call.respond(HttpStatusCode.BadRequest, Response(false, "Missing Fields"))
                 return@post
             }
 
@@ -60,10 +61,10 @@ fun Route.listRoutes(
 
                 val email = call.principal<User>()!!.email
                 repository.updateList(list, email)
-                call.respond(HttpStatusCode.OK, "list Updated Successfully!")
+                call.respond(HttpStatusCode.OK,Response(true, "list Updated Successfully!"))
 
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, e.message ?: "Some Problem Occurred!")
+                call.respond(HttpStatusCode.Conflict,Response(false, e.message ?: "Some Problem Occurred!"))
             }
 
         }
@@ -74,7 +75,7 @@ fun Route.listRoutes(
             val listId = try {
                 call.request.queryParameters["id"]!!.toInt()
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "QueryParameter:id is not present")
+                call.respond(HttpStatusCode.BadRequest, Response(true,"QueryParameter:id is not present"))
                 return@delete
             }
             try {
@@ -83,7 +84,7 @@ fun Route.listRoutes(
                 call.respond(HttpStatusCode.OK, "List Deleted Successfully!")
 
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, e.message ?: "Some problem Occurred!")
+                call.respond(HttpStatusCode.Conflict,Response(false, e.message ?: "Some problem Occurred!"))
             }
 
         }
@@ -93,15 +94,15 @@ fun Route.listRoutes(
             val list = try {
                 call.receive<TaskList>()
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "Missing Fields")
+                call.respond(HttpStatusCode.BadRequest, Response(false,"Missing Fields"))
                 return@post
             }
             try {
                 val email = call.principal<User>()!!.email
                 repository.creatList(list, email)
-                call.respond(HttpStatusCode.OK, "List Created Successfully!")
+                call.respond(HttpStatusCode.OK, Response(true,"List Created Successfully!"))
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, e.message ?: "Some Problem Occurred!")
+                call.respond(HttpStatusCode.Conflict, Response(false,e.message ?: "Some Problem Occurred!"))
             }
 
         }

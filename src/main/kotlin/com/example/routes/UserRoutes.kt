@@ -3,6 +3,7 @@ package com.example.routes
 import com.example.authentication.JwtService
 import com.example.data.model.LoginRequest
 import com.example.data.model.RegisterRequest
+import com.example.data.model.Response
 import com.example.data.model.User
 import com.example.repository.UserRepository
 import io.ktor.application.*
@@ -25,20 +26,20 @@ fun Route.userRoutes(
         val registerRequest = try {
             call.receive<RegisterRequest>()
         } catch (e: Exception) {
-            call.respond(HttpStatusCode.BadRequest, e.message + "Missing Some Fields")
+            call.respond(HttpStatusCode.BadRequest, Response(false, e.message + "Missing Some Fields"))
             return@post
         }
 
         try {
             val user = User(registerRequest.email, hashFunction(registerRequest.password), registerRequest.name)
             if (repository.findUserByEmail(registerRequest.email) != null)
-                call.respond(HttpStatusCode.Conflict, "Email is already exist")
+                call.respond(HttpStatusCode.Conflict, Response(false, "Email is already exist"))
             else {
                 repository.addUser(user)
                 call.respond(HttpStatusCode.OK, jwtService.generateToken(user))
             }
         } catch (e: Exception) {
-            call.respond(HttpStatusCode.Conflict, e.message ?: "Some Problem Occurred!")
+            call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
         }
     }
 
@@ -46,7 +47,7 @@ fun Route.userRoutes(
         val loginRequest = try {
             call.receive<LoginRequest>()
         } catch (e: Exception) {
-            call.respond(HttpStatusCode.BadRequest, "Missing Some Fields")
+            call.respond(HttpStatusCode.BadRequest, Response(false, "Missing Some Fields"))
             return@post
         }
 
@@ -54,31 +55,35 @@ fun Route.userRoutes(
             val user = repository.findUserByEmail(loginRequest.email)
 
             if (user == null) {
-                call.respond(HttpStatusCode.BadRequest, "Wrong Email Id")
+                call.respond(HttpStatusCode.BadRequest, Response(false, "Wrong Email Id"))
             } else {
 
                 if (user.hashPassword == hashFunction(loginRequest.password)) {
                     call.respond(HttpStatusCode.OK, jwtService.generateToken(user))
                 } else {
-                    call.respond(HttpStatusCode.BadRequest, "Password Incorrect!")
+                    call.respond(HttpStatusCode.BadRequest, Response(false, "Password Incorrect!"))
                 }
             }
         } catch (e: Exception) {
-            call.respond(HttpStatusCode.Conflict, e.message ?: "Some Problem Occurred!")
+            call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
         }
     }
 
     authenticate("jwt") {
         post("/v1/users/image") {
-            val multipartData = call.receiveMultipart()
-            multipartData.forEachPart { part ->
-                if (part is PartData.FileItem && part.contentType!!.match(ContentType.Image.Any)) {
-                    val email = call.principal<User>()!!.email
-                    val fileName = "$email.${part.contentType!!.contentSubtype}"
-                    val fileBytes = part.streamProvider().readBytes()
-                    File("src/main/resources/static/$fileName").writeBytes(fileBytes)
-                    repository.updateProfileImage(fileName,email)
+            try {
+                val multipartData = call.receiveMultipart()
+                multipartData.forEachPart { part ->
+                    if (part is PartData.FileItem && part.contentType!!.match(ContentType.Image.Any)) {
+                        val email = call.principal<User>()!!.email
+                        val fileName = "$email.${part.contentType!!.contentSubtype}"
+                        val fileBytes = part.streamProvider().readBytes()
+                        File("src/main/resources/static/$fileName").writeBytes(fileBytes)
+                        repository.updateProfileImage(fileName, email)
+                    }
                 }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
             }
         }
     }

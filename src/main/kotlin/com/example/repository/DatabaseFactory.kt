@@ -17,6 +17,7 @@ object DatabaseFactory {
             password = System.getenv("PASSWORD"),
         )
 
+
         transaction {
             SchemaUtils.create(UserTable)
             SchemaUtils.create(TaskListTable)
