@@ -19,7 +19,11 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
-fun main() {
+fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+
+@Suppress("unused") // Referenced in application.conf
+fun Application.module(testing: Boolean = false) {
+
     DatabaseFactory.init()
     val userRepository = UserRepository()
     val taskRepository = TaskRepository()
@@ -27,34 +31,33 @@ fun main() {
     val jwtService = JwtService()
     val hashFunction = { s: String -> hash(s) }
 
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
 
-        install(Authentication) {
+    install(Authentication) {
 
-            jwt("jwt") {
-                verifier(jwtService.varifier)
-                realm = "Note Server"
-                validate {
-                    val payload = it.payload
-                    val email = payload.getClaim("email").asString()
-                    val user = userRepository.findUserByEmail(email)
-                    user
-                }
+        jwt("jwt") {
+            verifier(jwtService.varifier)
+            realm = "Note Server"
+            validate {
+                val payload = it.payload
+                val email = payload.getClaim("email").asString()
+                val user = userRepository.findUserByEmail(email)
+                user
             }
-
         }
 
-        install(ContentNegotiation) {
-            gson {}
-        }
+    }
 
-        routing {
-            userRoutes(userRepository, jwtService, hashFunction)
-            taskRoutes(taskRepository)
-            listRoutes(listRepository)
-            static { resources("static") }
-        }
+    install(ContentNegotiation) {
+        gson {}
+    }
 
-    }.start(wait = true)
+    routing {
+        userRoutes(userRepository, jwtService, hashFunction)
+        taskRoutes(taskRepository)
+        listRoutes(listRepository)
+        static { resources("static") }
+    }
+
+
 }
 
