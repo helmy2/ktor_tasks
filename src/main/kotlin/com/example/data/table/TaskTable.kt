@@ -7,6 +7,7 @@ object TaskTable : Table() {
     val userEmail = varchar("userEmail", 512).references(UserTable.email)
     val listId = integer("listId").references(TaskListTable.id)
     val title = text("title")
+    val done = bool("done")
     val description = text("description")
     val date = long("date")
 

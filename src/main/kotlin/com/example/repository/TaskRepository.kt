@@ -12,6 +12,7 @@ class TaskRepository {
                 it[listId] = task.listId
                 it[userEmail] = email
                 it[title] = task.title
+                it[done] = task.done
                 it[description] = task.description
                 it[date] = task.date
             }
@@ -30,6 +31,7 @@ class TaskRepository {
             ) {
                 it[listId] = task.listId
                 it[title] = task.title
+                it[done] = task.done
                 it[description] = task.description
                 it[date] = task.date
             }

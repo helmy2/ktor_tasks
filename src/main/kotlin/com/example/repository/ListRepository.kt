@@ -4,6 +4,7 @@ import com.example.data.model.Task
 import com.example.data.model.TaskList
 import com.example.data.table.TaskListTable
 import com.example.data.table.TaskTable
+import com.example.data.table.TaskTable.done
 import com.example.data.table.TaskTable.listId
 import org.jetbrains.exposed.sql.*
 
@@ -57,7 +58,7 @@ class ListRepository {
         }
     }
 
-    suspend fun getListTasks(id: Int, email: String): List<Task> = DatabaseFactory.dbQuery {
+    private suspend fun getListTasks(id: Int, email: String): List<Task> = DatabaseFactory.dbQuery {
         TaskTable.select(
             where = {
                 TaskTable.userEmail.eq(email) and TaskTable.listId.eq(id)
@@ -65,6 +66,17 @@ class ListRepository {
         ).mapNotNull { rowToTask(it) }
     }
 
+
+    suspend fun getList(listId: Int, email: String): TaskList {
+        val taskList = DatabaseFactory.dbQuery {
+            TaskListTable.select {
+                TaskListTable.userEmail.eq(email) and TaskListTable.id.eq(listId)
+            }.firstNotNullOf { rowToList(it) }
+        }
+
+        taskList.list = getListTasks(listId, email)
+        return taskList
+    }
 
     private fun rowToList(row: ResultRow?): TaskList? = row?.let {
         TaskList(
@@ -81,9 +93,9 @@ class ListRepository {
             id = row[TaskTable.id],
             listId = row[listId],
             title = row[TaskTable.title],
+            done = row[done],
             description = row[TaskTable.description],
             date = row[TaskTable.date]
         )
     }
-
 }

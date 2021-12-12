@@ -3,7 +3,7 @@ package com.example.routes
 import com.example.data.model.Response
 import com.example.data.model.Task
 import com.example.data.model.TaskList
-import com.example.data.model.User
+import com.example.data.model.LocalUser
 import com.example.repository.ListRepository
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -22,7 +22,7 @@ fun Route.listRoutes(
         get("/v1/list") {
 
             try {
-                val email = call.principal<User>()!!.email
+                val email = call.principal<LocalUser>()!!.email
                 val list = repository.getAllList(email)
                 call.respond(HttpStatusCode.OK, list)
             } catch (e: Exception) {
@@ -39,11 +39,12 @@ fun Route.listRoutes(
             }
 
             try {
-                val email = call.principal<User>()!!.email
-                val list = repository.getListTasks(listId, email)
-                call.respond(HttpStatusCode.OK, list)
+                val email = call.principal<LocalUser>()!!.email
+                val taskList= repository.getList(listId, email)
+                call.respond(HttpStatusCode.OK, taskList)
+
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, emptyList<Task>())
+                call.respond(HttpStatusCode.Conflict, emptyList<TaskList>())
             }
         }
 
@@ -59,12 +60,12 @@ fun Route.listRoutes(
 
             try {
 
-                val email = call.principal<User>()!!.email
+                val email = call.principal<LocalUser>()!!.email
                 repository.updateList(list, email)
-                call.respond(HttpStatusCode.OK,Response(true, "list Updated Successfully!"))
+                call.respond(HttpStatusCode.OK, Response(true, "list Updated Successfully!"))
 
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict,Response(false, e.message ?: "Some Problem Occurred!"))
+                call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
             }
 
         }
@@ -75,16 +76,16 @@ fun Route.listRoutes(
             val listId = try {
                 call.request.queryParameters["id"]!!.toInt()
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, Response(true,"QueryParameter:id is not present"))
+                call.respond(HttpStatusCode.BadRequest, Response(false, "QueryParameter:id is not present"))
                 return@delete
             }
             try {
-                val email = call.principal<User>()!!.email
+                val email = call.principal<LocalUser>()!!.email
                 repository.deleteList(listId, email)
-                call.respond(HttpStatusCode.OK, "List Deleted Successfully!")
+                call.respond(HttpStatusCode.OK, Response(true,"List Deleted Successfully!"))
 
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict,Response(false, e.message ?: "Some problem Occurred!"))
+                call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some problem Occurred!"))
             }
 
         }
@@ -94,15 +95,15 @@ fun Route.listRoutes(
             val list = try {
                 call.receive<TaskList>()
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, Response(false,"Missing Fields"))
+                call.respond(HttpStatusCode.BadRequest, Response(false, "Missing Fields"))
                 return@post
             }
             try {
-                val email = call.principal<User>()!!.email
+                val email = call.principal<LocalUser>()!!.email
                 repository.creatList(list, email)
-                call.respond(HttpStatusCode.OK, Response(true,"List Created Successfully!"))
+                call.respond(HttpStatusCode.OK, Response(true, "List Created Successfully!"))
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, Response(false,e.message ?: "Some Problem Occurred!"))
+                call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
             }
 
         }

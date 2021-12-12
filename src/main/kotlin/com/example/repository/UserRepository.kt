@@ -1,6 +1,6 @@
 package com.example.repository
 
-import com.example.data.model.User
+import com.example.data.model.LocalUser
 import com.example.data.table.UserTable
 import com.example.data.table.UserTable.email
 import com.example.data.table.UserTable.hashPassword
@@ -12,12 +12,12 @@ import org.jetbrains.exposed.sql.update
 
 class UserRepository {
 
-    suspend fun addUser(user: User) {
+    suspend fun addUser(user: LocalUser) {
         DatabaseFactory.dbQuery {
             UserTable.insert {
                 it[email] = user.email
                 it[hashPassword] = user.hashPassword
-                it[name] = user.userName
+                it[name] = user.name
             }
         }
     }
@@ -38,15 +38,15 @@ class UserRepository {
             .singleOrNull()
     }
 
-    private fun rowToUser(row: ResultRow?): User? {
+    private fun rowToUser(row: ResultRow?): LocalUser? {
         if (row == null) {
             return null
         }
 
-        return User(
+        return LocalUser(
             email = row[email],
             hashPassword = row[hashPassword],
-            userName = row[name]
+            name = row[name]
         )
     }
 }

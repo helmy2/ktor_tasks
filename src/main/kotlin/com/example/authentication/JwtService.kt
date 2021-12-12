@@ -3,7 +3,7 @@ package com.example.authentication
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
-import com.example.data.model.User
+import com.example.data.model.LocalUser
 
 class JwtService {
 
@@ -16,7 +16,7 @@ class JwtService {
         .withIssuer(issuer)
         .build()
 
-    fun generateToken(user: User):String {
+    fun generateToken(user: LocalUser):String {
         return JWT.create()
             .withSubject("NOteAuthentication")
             .withIssuer(issuer)
