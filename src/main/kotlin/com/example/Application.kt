@@ -55,9 +55,6 @@ fun Application.module(testing: Boolean = false) {
         userRoutes(userRepository, jwtService, hashFunction)
         taskRoutes(taskRepository)
         listRoutes(listRepository)
-        static { resources("static") }
     }
-
-
 }
 

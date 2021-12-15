@@ -20,7 +20,6 @@ fun Route.listRoutes(
 
 
         get("/v1/list") {
-
             try {
                 val email = call.principal<LocalUser>()!!.email
                 val list = repository.getAllList(email)

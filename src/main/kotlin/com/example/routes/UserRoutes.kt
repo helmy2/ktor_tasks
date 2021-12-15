@@ -71,25 +71,6 @@ fun Route.userRoutes(
             call.respond(HttpStatusCode.Conflict, AccountResponse(false, null, e.message ?: "Some Problem Occurred!"))
         }
     }
-
-    authenticate("jwt") {
-        post("/v1/users/image") {
-            try {
-                val multipartData = call.receiveMultipart()
-                multipartData.forEachPart { part ->
-                    if (part is PartData.FileItem && part.contentType!!.match(ContentType.Image.Any)) {
-                        val email = call.principal<LocalUser>()!!.email
-                        val fileName = "$email.${part.contentType!!.contentSubtype}"
-                        val fileBytes = part.streamProvider().readBytes()
-                        File("src/main/resources/static/$fileName").writeBytes(fileBytes)
-                        repository.updateProfileImage(fileName, email)
-                    }
-                }
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
-            }
-        }
-    }
 }
 
 

@@ -22,16 +22,6 @@ class UserRepository {
         }
     }
 
-    suspend fun updateProfileImage(url: String,email: String) {
-        DatabaseFactory.dbQuery {
-            UserTable.update(where = {
-                UserTable.email.eq(email)
-            }) {
-                it[profileImageUrl] = url
-            }
-        }
-    }
-
     suspend fun findUserByEmail(email: String) = DatabaseFactory.dbQuery {
         UserTable.select { UserTable.email.eq(email) }
             .map { rowToUser(it) }

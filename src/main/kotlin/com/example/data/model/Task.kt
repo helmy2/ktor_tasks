@@ -6,5 +6,6 @@ data class Task(
     val done:Boolean,
     val title: String,
     val description: String,
+    val color: String,
     val date: Long
 )

@@ -23,11 +23,19 @@ class ListRepository {
     }
 
     suspend fun getAllList(email: String): List<TaskList> = DatabaseFactory.dbQuery {
-
-        TaskListTable.select {
+        val list = TaskListTable.select {
             TaskListTable.userEmail.eq(email)
         }.mapNotNull { rowToList(it) }
 
+        list.forEach { taskList ->
+            taskList.list = TaskTable.select(
+                where = {
+                    TaskTable.userEmail.eq(email) and TaskTable.listId.eq(taskList.id!!)
+                }
+            ).mapNotNull { rowToTask(it, taskList.color) }
+        }
+
+        list
     }
 
 
@@ -63,7 +71,7 @@ class ListRepository {
             where = {
                 TaskTable.userEmail.eq(email) and TaskTable.listId.eq(id)
             }
-        ).mapNotNull { rowToTask(it) }
+        ).mapNotNull { rowToTask(it, color = "") }
     }
 
 
@@ -88,14 +96,15 @@ class ListRepository {
         )
     }
 
-    private fun rowToTask(row: ResultRow?): Task? = row?.let {
+    private fun rowToTask(row: ResultRow?, color: String): Task? = row?.let {
         Task(
             id = row[TaskTable.id],
             listId = row[listId],
             title = row[TaskTable.title],
             done = row[done],
             description = row[TaskTable.description],
-            date = row[TaskTable.date]
+            color = color,
+            date = row[TaskTable.date],
         )
     }
 }
