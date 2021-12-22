@@ -3,6 +3,7 @@ package com.example.routes
 import com.example.data.model.Response
 import com.example.data.model.Task
 import com.example.data.model.LocalUser
+import com.example.data.model.TaskList
 import com.example.repository.TaskRepository
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -29,7 +30,7 @@ fun Route.taskRoutes(
             try {
                 val email = call.principal<LocalUser>()!!.email
                 repository.addTask(task, email)
-                call.respond(HttpStatusCode.OK, Response(true,"Task Added Successfully!"))
+                call.respond(HttpStatusCode.OK, Response(true, "Task Added Successfully!"))
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
             }

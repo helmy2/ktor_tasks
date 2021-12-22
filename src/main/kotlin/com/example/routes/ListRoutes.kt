@@ -18,6 +18,15 @@ fun Route.listRoutes(
 
     authenticate("jwt") {
 
+        get("/v1/list/today") {
+            try {
+                val email = call.principal<LocalUser>()!!.email
+                val taskList = repository.getTodayList(email)
+                call.respond(HttpStatusCode.OK, taskList)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.Conflict, emptyList<TaskList>())
+            }
+        }
 
         get("/v1/list") {
             try {

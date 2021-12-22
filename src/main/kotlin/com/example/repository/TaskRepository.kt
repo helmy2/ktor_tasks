@@ -1,8 +1,10 @@
 package com.example.repository
 
 import com.example.data.model.Task
+import com.example.data.table.TaskListTable
 import com.example.data.table.TaskTable
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 class TaskRepository {
 
@@ -45,7 +47,4 @@ class TaskRepository {
             TaskTable.deleteWhere { TaskTable.userEmail.eq(email) and TaskTable.id.eq(id) }
         }
     }
-
-
-
 }

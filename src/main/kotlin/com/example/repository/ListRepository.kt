@@ -7,6 +7,7 @@ import com.example.data.table.TaskTable
 import com.example.data.table.TaskTable.done
 import com.example.data.table.TaskTable.listId
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 class ListRepository {
 
@@ -28,11 +29,9 @@ class ListRepository {
         }.mapNotNull { rowToList(it) }
 
         list.forEach { taskList ->
-            taskList.list = TaskTable.select(
-                where = {
-                    TaskTable.userEmail.eq(email) and TaskTable.listId.eq(taskList.id!!)
-                }
-            ).mapNotNull { rowToTask(it, taskList.color) }
+            taskList.list = TaskTable.select(where = {
+                TaskTable.userEmail.eq(email) and TaskTable.listId.eq(taskList.id!!)
+            }).mapNotNull { rowToTask(it, taskList.color) }
         }
 
         list
@@ -43,11 +42,9 @@ class ListRepository {
 
         DatabaseFactory.dbQuery {
             list.id?.let {
-                TaskListTable.update(
-                    where = {
-                        TaskListTable.userEmail.eq(email) and TaskListTable.id.eq(list.id)
-                    }
-                ) {
+                TaskListTable.update(where = {
+                    TaskListTable.userEmail.eq(email) and TaskListTable.id.eq(list.id)
+                }) {
                     it[userEmail] = email
                     it[title] = list.title
                     it[description] = list.description
@@ -67,11 +64,9 @@ class ListRepository {
     }
 
     private suspend fun getListTasks(id: Int, email: String): List<Task> = DatabaseFactory.dbQuery {
-        TaskTable.select(
-            where = {
-                TaskTable.userEmail.eq(email) and TaskTable.listId.eq(id)
-            }
-        ).mapNotNull { rowToTask(it, color = "") }
+        TaskTable.select(where = {
+            TaskTable.userEmail.eq(email) and TaskTable.listId.eq(id)
+        }).mapNotNull { rowToTask(it, color = "") }
     }
 
 
@@ -84,6 +79,24 @@ class ListRepository {
 
         taskList.list = getListTasks(listId, email)
         return taskList
+    }
+
+    suspend fun getTodayList(email: String): List<Task> {
+        val list = DatabaseFactory.dbQuery {
+            TaskTable.select(where = {
+                TaskTable.userEmail.eq(email)
+            }).mapNotNull { rowToTask(it, color = "") }
+        }
+
+        list.forEach {
+            it.color = DatabaseFactory.dbQuery {
+                TaskListTable.select {
+                    TaskListTable.userEmail.eq(email) and TaskListTable.id.eq(it.listId)
+                }.first()[TaskListTable.color].toString()
+            }
+        }
+
+        return list
     }
 
     private fun rowToList(row: ResultRow?): TaskList? = row?.let {
