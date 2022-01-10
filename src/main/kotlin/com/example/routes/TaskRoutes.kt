@@ -18,19 +18,17 @@ fun Route.taskRoutes(
 
     authenticate("jwt") {
 
-        post("/v1/tasks/create") {
-
-            val task = try {
-                call.receive<Task>()
+        get("/v1/tasks/search") {
+            val title = try {
+                call.request.queryParameters["title"]!!.toString()
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, Response(false, "Missing Fields"))
-                return@post
+                return@get
             }
-
             try {
                 val email = call.principal<LocalUser>()!!.email
-                repository.addTask(task, email)
-                call.respond(HttpStatusCode.OK, Response(true, "Task Added Successfully!"))
+                val list = repository.search(title, email)
+                call.respond(HttpStatusCode.OK, list)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
             }
@@ -45,19 +43,15 @@ fun Route.taskRoutes(
                 call.respond(HttpStatusCode.BadRequest, Response(false, "Missing Fields"))
                 return@post
             }
-
             try {
-
                 val email = call.principal<LocalUser>()!!.email
-                repository.updateTask(task, email)
-                call.respond(HttpStatusCode.OK, Response(true, "Task Updated Successfully!"))
-
+                repository.addTask(task, email)
+                call.respond(HttpStatusCode.OK, Response(true, "Task Added Successfully!"))
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
             }
 
         }
-
 
         delete("/v1/tasks/delete") {
 
@@ -77,7 +71,23 @@ fun Route.taskRoutes(
 
         }
 
+        get("/v1/tasks") {
+            val taskId = try {
+                call.request.queryParameters["id"]!!.toInt()
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest, Response(false, "QueryParameter:id is not present"))
+                return@get
+            }
 
+            try {
+                val email = call.principal<LocalUser>()!!.email
+                val taskList = repository.getTask(email, taskId)
+                call.respond(HttpStatusCode.OK, taskList)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.Conflict, emptyList<TaskList>())
+            }
+
+        }
     }
 
 }

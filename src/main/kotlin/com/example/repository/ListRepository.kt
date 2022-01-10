@@ -7,7 +7,7 @@ import com.example.data.table.TaskTable
 import com.example.data.table.TaskTable.done
 import com.example.data.table.TaskTable.listId
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import java.util.*
 
 class ListRepository {
 
@@ -63,10 +63,10 @@ class ListRepository {
         }
     }
 
-    private suspend fun getListTasks(id: Int, email: String): List<Task> = DatabaseFactory.dbQuery {
+    private suspend fun getListTasks(id: Int, email: String, color: String): List<Task> = DatabaseFactory.dbQuery {
         TaskTable.select(where = {
             TaskTable.userEmail.eq(email) and TaskTable.listId.eq(id)
-        }).mapNotNull { rowToTask(it, color = "") }
+        }).mapNotNull { rowToTask(it, color) }
     }
 
 
@@ -77,14 +77,21 @@ class ListRepository {
             }.firstNotNullOf { rowToList(it) }
         }
 
-        taskList.list = getListTasks(listId, email)
+        taskList.list = getListTasks(listId, email, taskList.color)
         return taskList
     }
 
     suspend fun getTodayList(email: String): List<Task> {
+        val now = Calendar.getInstance()
+        now[Calendar.HOUR_OF_DAY] = 0
+        now[Calendar.MINUTE] = 0
+        val startDate = now.timeInMillis
+        now[Calendar.DAY_OF_MONTH] = now[Calendar.DAY_OF_MONTH] + 1
+        val endDate = now.timeInMillis
+
         val list = DatabaseFactory.dbQuery {
             TaskTable.select(where = {
-                TaskTable.userEmail.eq(email)
+                TaskTable.userEmail.eq(email) and TaskTable.date.between(startDate, endDate)
             }).mapNotNull { rowToTask(it, color = "") }
         }
 

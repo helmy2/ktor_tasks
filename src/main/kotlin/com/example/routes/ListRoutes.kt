@@ -48,36 +48,13 @@ fun Route.listRoutes(
 
             try {
                 val email = call.principal<LocalUser>()!!.email
-                val taskList= repository.getList(listId, email)
+                val taskList = repository.getList(listId, email)
                 call.respond(HttpStatusCode.OK, taskList)
 
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.Conflict, emptyList<TaskList>())
             }
         }
-
-
-        post("/v1/list/update") {
-
-            val list = try {
-                call.receive<TaskList>()
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, Response(false, "Missing Fields"))
-                return@post
-            }
-
-            try {
-
-                val email = call.principal<LocalUser>()!!.email
-                repository.updateList(list, email)
-                call.respond(HttpStatusCode.OK, Response(true, "list Updated Successfully!"))
-
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
-            }
-
-        }
-
 
         delete("/v1/list/delete") {
 
@@ -90,7 +67,7 @@ fun Route.listRoutes(
             try {
                 val email = call.principal<LocalUser>()!!.email
                 repository.deleteList(listId, email)
-                call.respond(HttpStatusCode.OK, Response(true,"List Deleted Successfully!"))
+                call.respond(HttpStatusCode.OK, Response(true, "List Deleted Successfully!"))
 
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some problem Occurred!"))
@@ -108,12 +85,16 @@ fun Route.listRoutes(
             }
             try {
                 val email = call.principal<LocalUser>()!!.email
-                repository.creatList(list, email)
-                call.respond(HttpStatusCode.OK, Response(true, "List Created Successfully!"))
+                if (list.id != null) {
+                    repository.updateList(list, email)
+                    call.respond(HttpStatusCode.OK, Response(true, "list Updated Successfully!"))
+                } else {
+                    repository.creatList(list, email)
+                    call.respond(HttpStatusCode.OK, Response(true, "List Created Successfully!"))
+                }
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.Conflict, Response(false, e.message ?: "Some Problem Occurred!"))
             }
-
         }
 
     }
